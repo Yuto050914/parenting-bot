@@ -14,6 +14,7 @@ ACCESS_SECRET = os.environ.get("X_ACCESS_SECRET")
 response = client_ai.messages.create(
     model="claude-sonnet-4-6",
     max_tokens=200,
+    temperature=0.9,
     messages=[
         {
             "role": "user",
@@ -65,6 +66,7 @@ client_x = tweepy.Client(
 )
 
 client_x.create_tweet(text=tweet_text)
+tweet_text = tweet_text[:130]
 
 print("投稿成功")
 print(tweet_text)
