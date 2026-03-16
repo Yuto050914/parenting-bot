@@ -1,6 +1,7 @@
 import os
 import tweepy
 from anthropic import Anthropic
+from datetime import datetime
 
 client_ai = Anthropic(
     api_key=os.environ.get("ANTHROPIC_API_KEY")
@@ -11,6 +12,8 @@ API_SECRET = os.environ.get("X_API_SECRET")
 ACCESS_TOKEN = os.environ.get("X_ACCESS_TOKEN")
 ACCESS_SECRET = os.environ.get("X_ACCESS_SECRET")
 
+now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 response = client_ai.messages.create(
     model="claude-sonnet-4-6",
     max_tokens=200,
@@ -18,14 +21,14 @@ response = client_ai.messages.create(
     messages=[
         {
             "role": "user",
-            "content": """
-あなたは「毎日育児」というXアカウントの投稿を作ります。
+            "content": f"""
+実行日時：{now}
 
+あなたは「毎日育児」というXアカウントの投稿を作ります。
 このアカウントの目的は、妊娠前〜3歳頃までの子育てで
 「これで合っているのか？」と不安になる親に対して、
 論文・研究知見・公的情報をベースに
-“考える視点”や“安心材料”を提供することです。
-
+"考える視点"や"安心材料"を提供することです。
 重要な考え方：
 ・子育てに絶対的な正解は少ない
 ・状況によって答えは変わる
@@ -33,7 +36,6 @@ response = client_ai.messages.create(
 ・不安を煽らない
 ・親を否定しない
 ・「こういう見方もある」という形で伝える
-
 投稿ルール：
 ・テーマは妊娠前〜3歳までの子育て
 ・研究知見や公的情報をベースにする
@@ -44,12 +46,10 @@ response = client_ai.messages.create(
 ・人が呟いている自然な文章
 ・最後に必ず #毎日育児 をつける
 ・絵文字は1つまで
-
 文章の型：
 ①よくある悩みや状況
 ②考えられる理由や視点
 ③少し安心できる締め
-
 投稿本文のみ出力してください。
 """
         }
@@ -65,8 +65,7 @@ client_x = tweepy.Client(
     access_token_secret=ACCESS_SECRET
 )
 
-client_x.create_tweet(text=tweet_text)
 tweet_text = tweet_text[:130]
-
+client_x.create_tweet(text=tweet_text)
 print("投稿成功")
 print(tweet_text)
