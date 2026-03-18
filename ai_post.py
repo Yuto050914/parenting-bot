@@ -12,7 +12,34 @@ API_SECRET = os.environ.get("X_API_SECRET")
 ACCESS_TOKEN = os.environ.get("X_ACCESS_TOKEN")
 ACCESS_SECRET = os.environ.get("X_ACCESS_SECRET")
 
+HISTORY_FILE = "history.txt"
+MAX_HISTORY = 20
+
+def load_history():
+    if not os.path.exists(HISTORY_FILE):
+        return []
+    with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f.readlines() if line.strip()]
+    return lines[-MAX_HISTORY:]
+
+def save_history(tweet_text):
+    history = load_history()
+    history.append(tweet_text)
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        for line in history[-MAX_HISTORY:]:
+            f.write(line + "\n")
+
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+history = load_history()
+
+if history:
+    history_text = "\n".join([f"・{h}" for h in history])
+    history_prompt = f"""
+過去に投稿した内容（これらと被らないようにしてください）：
+{history_text}
+"""
+else:
+    history_prompt = ""
 
 response = client_ai.messages.create(
     model="claude-sonnet-4-6",
@@ -56,7 +83,7 @@ response = client_ai.messages.create(
 - きょうだい育児
 - 予防接種・健診
 - 寝かしつけ
-
+{history_prompt}
 投稿ルール：
 ・選んだテーマに基づいて投稿する
 ・研究知見や公的情報をベースにする
@@ -85,6 +112,7 @@ response = client_ai.messages.create(
 )
 
 tweet_text = response.content[0].text.strip()
+tweet_text = tweet_text[:140]
 
 client_x = tweepy.Client(
     consumer_key=API_KEY,
@@ -93,7 +121,8 @@ client_x = tweepy.Client(
     access_token_secret=ACCESS_SECRET
 )
 
-tweet_text = tweet_text[:140]
 client_x.create_tweet(text=tweet_text)
+save_history(tweet_text)
+
 print("投稿成功")
 print(tweet_text)
